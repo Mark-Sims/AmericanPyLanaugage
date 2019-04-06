@@ -9,8 +9,8 @@
 import sys, thread, time
 import pdb
 
-sys.path.append("C:\\Users\\Mark\\Desktop\\Software Projects\\HackUpstateLeapMotion\\lib")
-sys.path.append("C:\\Users\\Mark\\Desktop\\Software Projects\\HackUpstateLeapMotion\\lib\\x86")
+sys.path.append("..\\lib")
+sys.path.append("..\\lib\\x86")
 
 import Leap
 
