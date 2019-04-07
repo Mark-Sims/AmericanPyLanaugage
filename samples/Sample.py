@@ -10,7 +10,8 @@ import sys, thread, time, json
 import pdb
 
 sys.path.append("..\\lib")
-sys.path.append("..\\lib\\x64")
+arch_dir = '../lib/x64' if sys.maxsize > 2**32 else '../lib/x86'
+sys.path.append(arch_dir)
 
 letter = 'a'
 
