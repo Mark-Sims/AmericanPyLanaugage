@@ -2,6 +2,8 @@ import json
 import pandas
 import os
 import pdb
+import sys
+import time
 
 from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
@@ -16,23 +18,27 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 
+from leapdata import create_frame_dict
+
+# Add Leap libraries
+sys.path.append("..\\lib")
+arch_dir = '../lib/x64' if sys.maxsize > 2**32 else '../lib/x86'
+sys.path.append(arch_dir)
+import Leap
+
 data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), u'..\\data\\')
 single_data_json = 'single.data.json'
 twenty_data_json = 'twenty.data.json'
 two_hundred_data_json = 'two_hundred.data.json'
 
 class HandDataParser:
-    def __init__(self, filename, data_index_of_label):
-        self.filename = filename
+    def __init__(self, data_index_of_label):
         self.data_index_of_label = data_index_of_label
 
-        self.read_file()
-        # Values is a numpy n-dimensional array
-        self.values = self.dataframe.values
 
     def slice(self):
         # Use advanced slicing capabilities of numpy arrays
-        # The outermost/top-level commas delimit slices of subsequent dimensions of the n-d array.
+        # The outer most/top-level commas delimit slices of subsequent dimensions of the n-d array.
         # For example, the first [:, ...] indicates that we want to take a slice including ALL records
         # of the first dimension. Then after that, we get more specific with which of the columns along
         # the 2nd dimension we want to slice.
@@ -43,22 +49,26 @@ class HandDataParser:
 
         # Generate a plot of the distribution of one particular datapoint column
         self.dataframe['Index_Distal_x'].hist(bins=600)
-        pdb.set_trace()
         return self.data, self.labels
 
 
-    def read_file(self):
+    def read_file(self, filename):
+        self.filename = filename
         print "Reading file: {}".format(self.filename)
         self.dataframe = pandas.read_json(self.filename)
+
+        # self.values is a numpy n-dimensional array
+        self.values = self.dataframe.values
 
 
 
 def main():
     data_filename = os.path.join(data_dir, two_hundred_data_json)
-    parser = HandDataParser(data_filename, 63)
+    parser = HandDataParser(63)
+    parser.read_file(data_filename)
     X, Y = parser.slice()
 
-    validation_size = 0.20
+    validation_size = 0.01
     seed = 7
     X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, test_size=validation_size, random_state=seed)
 
@@ -75,15 +85,37 @@ def main():
     models.append(('SVM', SVC(gamma='auto')))
 
     # evaluate each model in turn
-    results = []
-    names = []
+    # results = []
+    # names = []
+    # for name, model in models:
+        # kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        # cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+        # results.append(cv_results)
+        # names.append(name)
+        # msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+        # print(msg)
+
+    # Train all the different models
     for name, model in models:
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
-        results.append(cv_results)
-        names.append(name)
-        msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-        print(msg)
+        model.fit(X_train, Y_train)
+
+
+
+    # Create a controller
+    controller = Leap.Controller()
+
+    while True:
+        if controller.is_connected:
+            frame = create_frame_dict(controller)
+            if frame is not None:
+                for name, model in models:
+                    # pdb.set_trace()
+                    dataframe = pandas.read_json(json.dumps([frame]))
+                    print model.predict(dataframe.values)
+        else:
+            print "No controller connected, sleeping..."
+        # Delay
+        time.sleep(1)
 
 
 
