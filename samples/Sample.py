@@ -6,15 +6,18 @@
 # between Leap Motion and you, your company or other organization.             #
 ################################################################################
 
-import sys, thread, time
+import sys, thread, time, json
 import pdb
 
 sys.path.append("..\\lib")
-sys.path.append("..\\lib\\x86")
+sys.path.append("..\\lib\\x64")
+
+letter = 'a'
 
 import Leap
 
 class SampleListener(Leap.Listener):
+    list = []
     finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
     bone_names = ['Metacarpal', 'Proximal', 'Intermediate', 'Distal']
 
@@ -29,79 +32,118 @@ class SampleListener(Leap.Listener):
         print "Disconnected"
 
     def on_exit(self, controller):
-        print "Exited"
+        print len(self.list)
+        print "Completed"
 
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
 
-        print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d" % (
-              frame.id, frame.timestamp, len(frame.hands), len(frame.fingers))
-
+        # print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d" % (
+        #       frame.id, frame.timestamp, len(frame.hands), len(frame.fingers))
+        dict={}
+        dict['letter'] = chr(letter)
         # Get hands
         for hand in frame.hands:
-
             handType = "Left hand" if hand.is_left else "Right hand"
 
-            print "  %s, id %d, position: %s" % (
-                handType, hand.id, hand.palm_position)
+
+            # print "  %s, id %d, position: %s" % (
+            #     handType, hand.id, hand.palm_position)
+            dict['handType'] = str(handType)
+            dict['hand.id'] = str(hand.id)
+            dict['hand.palm_position'] = str(hand.palm_position)
 
             # Get the hand's normal vector and direction
             normal = hand.palm_normal
             direction = hand.direction
+            dict['hand_normal'] = str(normal)
+            dict['hand_direction'] = str(direction)
 
             # Calculate the hand's pitch, roll, and yaw angles
-            print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
-                direction.pitch * Leap.RAD_TO_DEG,
-                normal.roll * Leap.RAD_TO_DEG,
-                direction.yaw * Leap.RAD_TO_DEG)
+            # print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
+            #     direction.pitch * Leap.RAD_TO_DEG,
+            #     normal.roll * Leap.RAD_TO_DEG,
+            #     direction.yaw * Leap.RAD_TO_DEG)
+
+            dict['pitch'] = str(direction.pitch * Leap.RAD_TO_DEG)
+            dict['roll'] = str(normal.roll * Leap.RAD_TO_DEG)
+            dict['yaw'] = str(direction.yaw * Leap.RAD_TO_DEG)
 
             # Get arm bone
             arm = hand.arm
-            print "  Arm direction: %s, wrist position: %s, elbow position: %s" % (
-                arm.direction,
-                arm.wrist_position,
-                arm.elbow_position)
+            # print "  Arm direction: %s, wrist position: %s, elbow position: %s" % (
+            #     arm.direction,
+            #     arm.wrist_position,
+            #     arm.elbow_position)
+
+            dict['arm'] = str(arm)
+            dict['wrist_pos'] = str(arm.wrist_position)
+            dict['elbow_pos'] = str(arm.elbow_position)
 
             # Get fingers
             for finger in hand.fingers:
 
-                print "    %s finger, id: %d, length: %fmm, width: %fmm" % (
-                    self.finger_names[finger.type],
-                    finger.id,
-                    finger.length,
-                    finger.width)
+                # print "    %s finger, id: %d, length: %fmm, width: %fmm" % (
+                #     self.finger_names[finger.type],
+                #     finger.id,
+                #     finger.length,
+                #     finger.width)
+                dict['finger'] = self.finger_names[finger.type]
+                dict['finger_id_'+str(finger.id)] = str(finger.id)
+                dict['finger_length_'+str(finger.id)] = str(finger.length)
+                dict['finger_width_'+str(finger.id)] = str(finger.width)
 
                 # Get bones
                 for b in range(0, 4):
                     bone = finger.bone(b)
-                    print "      Bone: %s, start: %s, end: %s, direction: %s" % (
-                        self.bone_names[bone.type],
-                        bone.prev_joint,
-                        bone.next_joint,
-                        bone.direction)
+                    # print "      Bone: %s, start: %s, end: %s, direction: %s" % (
+                    #     self.bone_names[bone.type],
+                    #     bone.prev_joint,
+                    #     bone.next_joint,
+                    #     bone.direction)
+                    dict['bone'] = str(self.bone_names[bone.type])
+                    dict['bone_start_'+ str(self.bone_names[bone.type])] = str(bone.prev_joint)
+                    dict['bone_end_' + str(self.bone_names[bone.type])] = str(bone.next_joint)
+                    dict['bone_direction_' + str(self.bone_names[bone.type])] = str(bone.direction)
+
 
         if not frame.hands.is_empty:
-            print ""
+            print(len(self.list))
+            if(len(self.list) < 3000):
+                self.list.append(dict)
 
-def main():
+
+def main(letter):
     # Create a sample listener and controller
+
     listener = SampleListener()
     controller = Leap.Controller()
 
     # Have the sample listener receive events from the controller
     controller.add_listener(listener)
 
-    # Keep this process running until Enter is pressed
+
+
+
+    #Keep this process running until Enter is pressed
     print "Press Enter to quit..."
     try:
         sys.stdin.readline()
     except KeyboardInterrupt:
         pass
     finally:
-        # Remove the sample listener when done
-        controller.remove_listener(listener)
+        #Remove the sample listener when done
+        list = listener.list
+    #controller.remove_listener(listener)
+    return list
 
 
 if __name__ == "__main__":
-    main()
+    dict = {}
+    for let in range(ord('a'),ord('c')+1):
+        raw_input("Sign letter '{}' and press enter".format(chr(let)))
+        letter = let
+        lst = main(chr(let))
+    with open('data.json', 'w') as fp:
+        json.dump(lst, fp)
