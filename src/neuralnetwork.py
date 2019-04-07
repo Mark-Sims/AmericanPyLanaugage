@@ -123,14 +123,18 @@ def main():
         if controller.is_connected:
             frame, frame_id = create_frame_dict(controller) # TODO: Use frame_id
             if frame is not None:
+                model_predictions = []
                 for name, model in models:
                     # pdb.set_trace()
                     dataframe = pandas.read_json(json.dumps([frame]))
                     prediction = model.predict(dataframe.values)[0]
-                    print prediction
-                    img=mpimg.imread(letter_images[prediction])
-                    imgplot = plt.imshow(img)
-                    plt.show()
+                    model_predictions.append(prediction)
+                # Out of the 5 ML models run, pick the letter that was picked most often
+                # This isn't necessarily a good way to pick the letter...
+                prediction = max(set(model_predictions), key=model_predictions.count)
+                img=mpimg.imread(letter_images[prediction])
+                imgplot = plt.imshow(img)
+                plt.show()
 
         else:
             print "No controller connected, sleeping..."
