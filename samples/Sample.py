@@ -19,7 +19,7 @@ data = []
 collection_letter = ""
 lister = None
 controller = None
-iterations = 0
+iterations = 250
 
 class SampleListener(Leap.Listener):
     finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
@@ -34,7 +34,7 @@ class SampleListener(Leap.Listener):
         pass
 
     def on_connect(self, controller):
-        print "Connected"
+        print "In progress.."
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
@@ -67,9 +67,8 @@ class SampleListener(Leap.Listener):
         for hand in frame.hands:
             handType = "Left hand" if hand.is_left else "Right hand"
 
-            if(handType=="Left hand" or collection_letter==''):
-                break
-
+            if(handType == "Left hand"):
+                return None
             # print "  %s, id %d, position: %s" % (
             #     handType, hand.id, hand.palm_position)
 
@@ -84,28 +83,9 @@ class SampleListener(Leap.Listener):
             dict['hand_direction_y'] = float(direction.y)
             dict['hand_direction_z'] = float(direction.z)
 
-            # Calculate the hand's pitch, roll, and yaw angles
-            # print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
-            #     direction.pitch * Leap.RAD_TO_DEG,
-            #     normal.roll * Leap.RAD_TO_DEG,
-                # direction.yaw * Leap.RAD_TO_DEG)
-
-            # Get arm bone
-            arm = hand.arm
-            # print "  Arm direction: %s, wrist position: %s, elbow position: %s" % (
-            #     arm.direction,
-            #     arm.wrist_position,
-            #     arm.elbow_position)
-
             # Get fingers
             for finger in hand.fingers:
                 f = self.finger_names[finger.type]
-
-                # print "    %s finger, id: %d, length: %fmm, width: %fmm" % (
-                #     self.finger_names[finger.type],
-                #     finger.id,
-                #     finger.length,
-                #     finger.width)
 
                 # Get bones
                 for b in range(0, 4):
@@ -115,16 +95,7 @@ class SampleListener(Leap.Listener):
                         dict[f + "_" + b + "_x"] = float(bone.direction.x)
                         dict[f + "_" + b + "_y"] = float(bone.direction.y)
                         dict[f + "_" + b + "_z"] = float(bone.direction.z)
-
-                    # print "      Bone: %s, start: %s, end: %s, direction: %s" % (
-                    #     self.bone_names[bone.type],
-                    #     bone.prev_joint,
-                    #     bone.next_joint,
-                    #     bone.direction)
-        data.append(dict)
-
-        # if not frame.hands.is_empty:
-        #     print ""
+            data.append(dict)
 
 
 def main():
@@ -138,32 +109,42 @@ def main():
     # data_gatherer = DataGatherer()
     # Create a sample listener and controller
     listener = SampleListener()
-    controller = Leap.Controller()
 
-    letters = ['','a', 'b',
-    'c']
-    # 'd', 'e', 'f', 'g', 'h',
-    # 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-    # 't', 'u', 'v', 'w', 'x', 'y', 'z', '']
 
-    try:
-        for letter in letters:
+    letters = ['a', 'b', 'c',
+    'd', 'e', 'f', 'g', 'h',
+    'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+    't', 'u', 'v', 'w', 'x', 'y', 'z']
+    for letter in letters:
+        print "Sign: " + letter
+        controller = Leap.Controller()
+        controller.add_listener(listener)
+        try:
             collection_letter = letter
-            #print(data)
-            if(letter!=''):
-                iterations+=200
-            print "About to collect letter '{}'. Press ENTER to start.".format(letter)
             sys.stdin.readline()
-            # Have the sample listener receive events from the controller
-            controller.add_listener(listener)
-
-            print "Collecting letter '{}'.".format(letter)
-            #time.sleep(10) # 1 second delay since it takes a minute for the listener to get going
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # Remove the sample listener when done
-        controller.remove_listener(listener)
+            # for letter in letters:
+            #     collection_letter = letter
+            #     #print(data)
+            #     # if(letter!=''):
+            #     #     iterations+=200
+            #     iterations+=100
+            #     print "About to collect letter '{}'. Press ENTER to start.".format(letter)
+            #     sys.stdin.readline()
+            #     listener = SampleListener()
+            #     controller.add_listener(listener)
+            #     # Have the sample listener receive events from the controller
+            #
+            #
+            #     print "Collecting letter '{}'.".format(letter)
+            #     #time.sleep(1)
+            #     #time.sleep(10) # 1 second delay since it takes a minute for the listener to get going
+        except KeyboardInterrupt:
+            print "interrupt"
+            pass
+        finally:
+            # Remove the sample listener when done
+            controller.remove_listener(listener)
+        iterations+=500
 
 
     # end of stuff
@@ -172,15 +153,17 @@ def main():
     a_count=0
     b_count=0
     c_count=0
+    '''
     for dict in data:
         if dict['letter'] == 'a':
-            a_count +=1
+            a_count+=1
         elif dict['letter'] == 'b':
             b_count +=1
         elif dict['letter'] == 'c':
             c_count +=1
     print("a_count: {}, b_count: {}, c_count: {}").format(a_count, b_count, c_count)
-    with open('data.json', 'w') as fp:
+    '''
+    with open('dat2.json', 'w') as fp:
         json.dump(data, fp)
 
 
