@@ -23,14 +23,14 @@ def create_frame_dict(controller):
     frame = controller.frame()
 
     if len(frame.hands) == 0:
-        return None
+        return None, None
     # Get hands
     for hand in frame.hands:
         handType = "Left hand" if hand.is_left else "Right hand"
 
         # Don't care about left hand just yet...
         if(handType=="Left hand"):
-            return None
+            return None, None
 
         # Get the hand's normal vector and direction
         normal = hand.palm_normal
@@ -58,7 +58,7 @@ def create_frame_dict(controller):
                     dict[f + "_" + b + "_x"] = float(bone.direction.x)
                     dict[f + "_" + b + "_y"] = float(bone.direction.y)
                     dict[f + "_" + b + "_z"] = float(bone.direction.z)
-    return dict
+    return dict, frame.id
 
 # def main():
 #     # Create a controller

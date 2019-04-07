@@ -18,6 +18,9 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 
+# For showing ASL letter_images
+import matplotlib.image as mpimg
+
 from leapdata import create_frame_dict
 
 # Add Leap libraries
@@ -31,6 +34,10 @@ single_data_json = 'single.data.json'
 twenty_data_json = 'twenty.data.json'
 two_hundred_data_json = 'two_hundred.data.json'
 full_alphabet_data_json = 'full_alphabet.data.json'
+full_alphabet_2_data_json = 'full_alphabet.2.data.json'
+full_json = 'full.json'
+my_collection_json = 'x.r.messed.json'
+
 
 class HandDataParser:
     def __init__(self, data_index_of_label):
@@ -61,18 +68,16 @@ class HandDataParser:
         # self.values is a numpy n-dimensional array
         self.values = self.dataframe.values
 
-
-
 def main():
-    data_filename = os.path.join(data_dir, full_alphabet_data_json)
+    data_filename = os.path.join(data_dir, my_collection_json)
     parser = HandDataParser(63)
     parser.read_file(data_filename)
     X, Y = parser.slice()
 
-    validation_size = 0.01
+    validation_size = 0.10
     seed = 7
     X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, test_size=validation_size, random_state=seed)
-
+    Y_train = Y_train.ravel()
     # Test options and evaluation metric
     scoring = 'accuracy'
 
@@ -86,33 +91,47 @@ def main():
     models.append(('SVM', SVC(gamma='auto')))
 
     # evaluate each model in turn
-    # results = []
-    # names = []
-    # for name, model in models:
-        # kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        # cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
-        # results.append(cv_results)
-        # names.append(name)
-        # msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-        # print(msg)
+    results = []
+    names = []
+    for name, model in models:
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        cv_results = model_selection.cross_val_score(model, X_train, Y_train.ravel(), cv=kfold, scoring=scoring)
+        results.append(cv_results)
+        names.append(name)
+        msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+        print(msg)
 
     # Train all the different models
     for name, model in models:
         model.fit(X_train, Y_train)
 
+    # Create a dict mapping
+    # letter -> image filepath for that ASL letter
+    letter_images = {}
+    alphabet = map(chr, range(97, 123))
+    assets_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), u'..\\assets\\')
 
+    for letter in alphabet:
+        filename = '{}_labelled.png'.format(letter)
+        filepath = os.path.join(assets_dir, filename)
+        letter_images[str(letter)] = filepath
 
     # Create a controller
     controller = Leap.Controller()
 
     while True:
         if controller.is_connected:
-            frame = create_frame_dict(controller)
+            frame, frame_id = create_frame_dict(controller) # TODO: Use frame_id
             if frame is not None:
                 for name, model in models:
                     # pdb.set_trace()
                     dataframe = pandas.read_json(json.dumps([frame]))
-                    print model.predict(dataframe.values)
+                    prediction = model.predict(dataframe.values)[0]
+                    print prediction
+                    img=mpimg.imread(letter_images[prediction])
+                    imgplot = plt.imshow(img)
+                    plt.show()
+
         else:
             print "No controller connected, sleeping..."
         # Delay
