@@ -77,7 +77,7 @@ class SampleListener(Leap.Listener):
             #     arm.wrist_position,
             #     arm.elbow_position)
 
-            dict['arm'] = str(arm)
+            #dict['arm'] = str(arm)
             dict['wrist_pos'] = str(arm.wrist_position)
             dict['elbow_pos'] = str(arm.elbow_position)
 
@@ -89,9 +89,9 @@ class SampleListener(Leap.Listener):
                 #     finger.id,
                 #     finger.length,
                 #     finger.width)
-                dict['finger'] = self.finger_names[finger.type]
+                dict['finger_'+str(finger.id)] = self.finger_names[finger.type]
                 dict['finger_id_'+str(finger.id)] = str(finger.id)
-                dict['finger_length_'+str(finger.id)] = str(finger.length)
+                #dict['finger_length_'+str(finger.id)] = str(finger.length)
                 dict['finger_width_'+str(finger.id)] = str(finger.width)
 
                 # Get bones
