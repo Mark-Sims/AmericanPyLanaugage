@@ -36,7 +36,7 @@ two_hundred_data_json = 'two_hundred.data.json'
 full_alphabet_data_json = 'full_alphabet.data.json'
 full_alphabet_2_data_json = 'full_alphabet.2.data.json'
 full_json = 'full.json'
-my_collection_json = 'x.r.messed.json'
+my_collection_json = 'mine.json'
 
 
 class HandDataParser:
