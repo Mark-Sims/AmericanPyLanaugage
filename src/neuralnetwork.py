@@ -30,6 +30,7 @@ data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), u'..\\data\
 single_data_json = 'single.data.json'
 twenty_data_json = 'twenty.data.json'
 two_hundred_data_json = 'two_hundred.data.json'
+full_alphabet_data_json = 'full_alphabet.data.json'
 
 class HandDataParser:
     def __init__(self, data_index_of_label):
@@ -63,7 +64,7 @@ class HandDataParser:
 
 
 def main():
-    data_filename = os.path.join(data_dir, two_hundred_data_json)
+    data_filename = os.path.join(data_dir, full_alphabet_data_json)
     parser = HandDataParser(63)
     parser.read_file(data_filename)
     X, Y = parser.slice()
