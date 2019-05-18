@@ -1,5 +1,6 @@
+![](images/2019-04-07_10-32-19.png)
 # What it does
-Interprets hand shapes and translates them to written English.
+Interprets ASL hand shapes and translates them to written English.
 # How we built it
 Hand, finger and joint orientation is read in real time using a Leap Motion. This data is then fed into a neural network that we trained to classify different ASL signs based on the input vectors. Each 'frame' is ran through 5 machine learning algorithms, and each produces candidate a letter classification. The letter that was selected the most often by the 5 algorithms is then selected as the final result.
 # ML algorithms used for classifications
