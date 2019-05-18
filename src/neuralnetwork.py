@@ -98,8 +98,8 @@ def main():
         cv_results = model_selection.cross_val_score(model, X_train, Y_train.ravel(), cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
-        msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-        print(msg)
+        # msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+        # print(msg)
 
     # Train all the different models
     for name, model in models:
@@ -132,6 +132,8 @@ def main():
                 # Out of the 5 ML models run, pick the letter that was picked most often
                 # This isn't necessarily a good way to pick the letter...
                 prediction = max(set(model_predictions), key=model_predictions.count)
+                print model_predictions
+                prediction = model_predictions[-1]
                 img=mpimg.imread(letter_images[prediction])
                 imgplot = plt.imshow(img)
                 plt.show()
